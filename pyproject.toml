@@ -8,6 +8,7 @@ dependencies = [
     "alembic>=1.18.5",
     "docker>=7.2.0",
     "fastapi>=0.140.13",
+    "greenlet>=3.5.4",
     "passlib[bcrypt]>=1.7.4",
     "psycopg[binary]>=3.3.4",
     "pydantic-settings>=2.14.2",
