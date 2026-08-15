@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from backend.app.api.v1.health import router as health_router
 from backend.app.core.config import settings
 
 
@@ -8,10 +9,8 @@ app = FastAPI(
     version=settings.app_version,
 )
 
-
-@app.get("/")
-async def root():
-    return {
-        "message": "NodeCore API",
-        "debug": settings.debug,
-    }
+app.include_router(
+    health_router,
+    prefix="/api/v1/health",
+    tags=["Health"],
+)
