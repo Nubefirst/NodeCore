@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from backend.app.core.config import settings
 from backend.app.db.base import Base
-
+from backend.app.models.user import User
 
 config = context.config
 
@@ -63,4 +63,7 @@ async def run_migrations_online() -> None:
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    asyncio.run(
+        run_migrations_online(),
+        loop_factory=asyncio.SelectorEventLoop,
+    )
