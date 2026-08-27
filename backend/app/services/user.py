@@ -1,6 +1,7 @@
 from backend.app.models.user import User
 from backend.app.repositories.user import UserRepository
 from backend.app.schemas.user import UserCreate, UserUpdate
+from backend.app.security.password import hash_password
 
 
 class UserService:
@@ -16,15 +17,13 @@ class UserService:
         if existing_user:
             raise ValueError("Username already exists")
 
-        # Пока сохраняем пароль как есть.
-        # Позже здесь будет хеширование.
         user = User(
             username=data.username,
-            password=data.password,
+            password_hash=hash_password(data.password),
             role=data.role,
             is_active=data.is_active,
         )
-
+        
         return await self.repository.create(user)
 
     async def update(self, user: User, data: UserUpdate) -> User:
@@ -38,8 +37,7 @@ class UserService:
             user.is_active = data.is_active
 
         if data.password is not None:
-            # Позже здесь тоже будет хеширование.
-            user.password = data.password
+            user.password_hash = hash_password(data.password)
 
         await self.repository.session.flush()
         await self.repository.session.refresh(user)
