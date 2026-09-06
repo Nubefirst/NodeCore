@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from backend.app.schemas.auth import Token
 from backend.app.dependencies.database import get_db
 from backend.app.repositories.user import UserRepository
+from backend.app.models.user import User
 from backend.app.security.jwt import create_access_token
 from backend.app.security.password import verify_password, hash_password
 
@@ -38,3 +39,5 @@ async def user_login(
                 "access_token": access_token,
                 "token_type": "bearer"
         }
+
+

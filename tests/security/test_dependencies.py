@@ -71,7 +71,7 @@ async def test_get_current_user_user_not_found():
     token = create_access_token({"sub": "123"})
 
     mock_repository = MagicMock()
-    mock_repository.get_by_id = AsyncMock(return_value=None)  # ← пользователь не найден
+    mock_repository.get_by_id = AsyncMock(return_value=None)
 
     with pytest.MonkeyPatch.context() as monkeypatch:
         monkeypatch.setattr(
