@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
+from backend.app.core.enums import UserRole
 
 
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
-    role: str = Field(max_length=50)
-    is_active: bool = True
+
 
 
 class UserCreate(UserBase):
@@ -15,6 +15,8 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+    role:  UserRole
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 
@@ -23,6 +25,6 @@ class UserRead(UserBase):
 
 class UserUpdate(BaseModel):
     username: str | None = Field(default=None, min_length=3, max_length=50)
-    role: str | None = Field(default=None, max_length=50)
+    role: UserRole | None = None
     is_active: bool | None = None
     password: str | None = Field(default=None, min_length=8)
