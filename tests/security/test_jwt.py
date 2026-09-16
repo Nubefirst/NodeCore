@@ -2,8 +2,8 @@ import jwt
 import pytest
 import json
 import base64
-from backend.app.security.jwt import create_access_token, decode_access_token
-from datetime import datetime, timedelta, timezone
+from backend.app.security.jwt import create_refresh_token,decode_refresh_token,create_access_token, decode_access_token
+from datetime import datetime, timezone
 from backend.app.core.config import settings
 
 
@@ -99,3 +99,44 @@ def test_decode_expired_token_raises_error():
 def test_decode_invalid_token_raises_error():
     with pytest.raises(jwt.InvalidTokenError):
         decode_access_token("not.a.jwt")
+
+
+def test_access_token_contains_type_access():
+    token = create_access_token({"sub": "123"})
+    payload = jwt.decode(token, options={"verify_signature": False})
+
+    assert payload["type"] == "access"
+
+
+def test_refresh_token_contains_type_refresh():
+    token = create_refresh_token({"sub": "123"})
+    payload = jwt.decode(token, options={"verify_signature": False})
+
+    assert payload["type"] == "refresh"
+
+
+def test_access_token_cannot_be_decoded_as_refresh():
+    access_token = create_access_token({"sub": "123"})
+
+    with pytest.raises(ValueError):
+        decode_refresh_token(access_token)
+
+
+def test_refresh_token_cannot_be_decoded_as_access():
+    refresh_token = create_refresh_token({"sub": "123"})
+
+    with pytest.raises(ValueError):
+        decode_access_token(refresh_token)
+
+
+def test_refresh_token_has_7_days_expiration():
+    """Проверяет, что exp находится примерно через 7 дней от текущего момента."""
+    token = create_refresh_token({"sub": "123"})
+    payload = jwt.decode(token, options={"verify_signature": False})
+
+    exp = payload["exp"]
+    now = datetime.now(timezone.utc).timestamp()
+    expected = now + (7 * 24 * 60 * 60)  # 7 дней от текущего момента
+
+    # Проверяем, что exp находится в пределах ±60 секунд от ожидаемого
+    assert abs(exp - expected) < 60

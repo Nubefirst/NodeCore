@@ -18,12 +18,12 @@ async def user_login(
         repository = UserRepository(db)
         service = AuthService(repository)
 
-        access_token = await service.login(
+        tokens = await service.login(
                 form_data.username,
                 form_data.password
         )
 
-        if access_token is None:
+        if tokens is None:
                 raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Invalid credentials",
@@ -31,7 +31,8 @@ async def user_login(
                 )
 
         return {
-                "access_token": access_token,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
                 "token_type": "bearer"
         }
 
