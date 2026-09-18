@@ -14,7 +14,7 @@ def client():
     return TestClient(app)
 
 
-@pytest.mark.asyncio
+
 def test_login_success(client):
     """1. Правильные username + password → 200 + JWT."""
     hashed_password = hash_password("secret123")
@@ -59,7 +59,7 @@ def test_login_success(client):
         app.dependency_overrides.clear()
 
 
-@pytest.mark.asyncio
+
 def test_login_wrong_password(client):
     """2. Правильный username, неправильный пароль → 401."""
     # 1. Подготовка: создаём пользователя с хешем
@@ -105,7 +105,6 @@ def test_login_wrong_password(client):
         app.dependency_overrides.clear()
 
 
-@pytest.mark.asyncio
 def test_login_user_not_found(client):
     """3. Несуществующий username → 401."""
     # 1. Мокаем репозиторий (возвращает None)
