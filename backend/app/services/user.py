@@ -11,8 +11,16 @@ class UserService:
     async def get_by_username(self, username: str) -> User | None:
         return await self.repository.get_by_username(username)
 
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        return await self.repository.get_by_id(user_id)
+
+
+    async def get_all(self) -> list[User]:
+        return await self.repository.get_all()
+
+
     async def create(self, data: UserCreate) -> User:
-        # Проверяем, что пользователь с таким username не существует
         existing_user = await self.repository.get_by_username(data.username)
         if existing_user:
             raise ValueError("Username already exists")
@@ -25,6 +33,7 @@ class UserService:
         )
         
         return await self.repository.create(user)
+
 
     async def update(self, user: User, data: UserUpdate) -> User:
         if data.username is not None:
@@ -43,6 +52,7 @@ class UserService:
         await self.repository.session.refresh(user)
 
         return user
+
 
     async def deactivate(self, user: User) -> None:
         await self.repository.deactivate(user)
