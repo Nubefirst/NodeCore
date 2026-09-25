@@ -9,7 +9,7 @@ from backend.app.schemas.user import UserCreate, UserRead
 from backend.app.repositories.user import UserRepository
 from backend.app.models.user import User
 
-router = APIRouter(tags=["users"])
+router = APIRouter()
 
 
 @router.post("/", response_model=UserRead)
