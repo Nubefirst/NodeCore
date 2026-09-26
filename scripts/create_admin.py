@@ -1,4 +1,6 @@
 import asyncio
+import selectors
+
 from backend.app.db.session import async_session_factory
 from backend.app.repositories.user import UserRepository
 from backend.app.models.user import User
@@ -31,4 +33,9 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(
+        main(),
+        loop_factory=lambda: asyncio.SelectorEventLoop(
+            selectors.SelectSelector()
+        ),
+    )
