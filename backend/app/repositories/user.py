@@ -50,3 +50,4 @@ class UserRepository:
     async def deactivate(self, user: User) -> None:
         user.is_active = False
         await self.session.flush()
+        await self.session.refresh(user)
