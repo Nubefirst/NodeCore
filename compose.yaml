@@ -1,4 +1,27 @@
 services:
+  backend:
+    build: .
+    container_name: nodecore-backend
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    command: >
+      sh -c "alembic upgrade head &&
+            uvicorn backend.app.main:app --host 0.0.0.0 --port 8000"
+            
   postgres:
     image: postgres:17
     container_name: nodecore-postgres
@@ -20,7 +43,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
 
 volumes:
   postgres_data:

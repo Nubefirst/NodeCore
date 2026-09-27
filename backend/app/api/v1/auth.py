@@ -10,9 +10,27 @@ from backend.app.dependencies.database import get_db
 from backend.app.repositories.user import UserRepository
 from backend.app.services.auth import AuthService
 
-router = APIRouter(tags=["auth"])
+router = APIRouter()
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Authenticate user and return JWT token",
+    description="""
+Authenticate an existing user using username and password.
+
+Returns a JWT access token that should be included in the `Authorization` header
+using the Bearer scheme.
+""",
+    responses={
+    status.HTTP_200_OK: {
+        "description": "JWT access token returned successfully.",
+    },
+    status.HTTP_401_UNAUTHORIZED: {
+        "description": "Invalid username or password.",
+    },
+}
+)
 async def user_login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: AsyncSession = Depends(get_db)
@@ -89,8 +107,3 @@ async def refresh_token(
                 "access_token": result["access_token"],
                 "token_type": "bearer",
         }
-
-
-
-
-

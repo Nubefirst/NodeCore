@@ -15,7 +15,7 @@ from backend.app.security.dependencies import (
 from backend.app.security.password import hash_password
 from backend.app.services.user import UserService
 
-router = APIRouter(tags=["users"])
+router = APIRouter()
 
 
 @router.post("/", response_model=UserRead)
