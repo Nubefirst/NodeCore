@@ -23,8 +23,27 @@ class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserUpdate(BaseModel):
-    username: str | None = Field(default=None, min_length=3, max_length=50)
+class UserMeUpdate(BaseModel):
+    username: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=50,
+    )
+    password: str | None = Field(
+        default=None,
+        min_length=8,
+    )
+
+
+class UserAdminUpdate(BaseModel):
+    username: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=50,
+    )
+    password: str | None = Field(
+        default=None,
+        min_length=8,
+    )
     role: UserRole | None = None
     is_active: bool | None = None
-    password: str | None = Field(default=None, min_length=8)
