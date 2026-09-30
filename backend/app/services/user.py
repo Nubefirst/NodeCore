@@ -1,7 +1,8 @@
 from backend.app.models.user import User
 from backend.app.repositories.user import UserRepository
-from backend.app.schemas.user import UserCreate, UserUpdate
+from backend.app.schemas.user import UserCreate, UserMeUpdate, UserAdminUpdate
 from backend.app.security.password import hash_password
+from backend.app.core.enums import UserRole
 
 
 class UserService:
@@ -11,8 +12,16 @@ class UserService:
     async def get_by_username(self, username: str) -> User | None:
         return await self.repository.get_by_username(username)
 
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        return await self.repository.get_by_id(user_id)
+
+
+    async def get_all(self) -> list[User]:
+        return await self.repository.get_all()
+
+
     async def create(self, data: UserCreate) -> User:
-        # Проверяем, что пользователь с таким username не существует
         existing_user = await self.repository.get_by_username(data.username)
         if existing_user:
             raise ValueError("Username already exists")
@@ -20,29 +29,36 @@ class UserService:
         user = User(
             username=data.username,
             password_hash=hash_password(data.password),
-            role=data.role,
-            is_active=data.is_active,
+            role=UserRole.USER,
+            is_active=True,
         )
-        
+
         return await self.repository.create(user)
 
-    async def update(self, user: User, data: UserUpdate) -> User:
+
+    async def update(
+        self,
+        user: User,
+        data: UserMeUpdate | UserAdminUpdate
+    ) -> User:
         if data.username is not None:
             user.username = data.username
 
-        if data.role is not None:
-            user.role = data.role
-
-        if data.is_active is not None:
-            user.is_active = data.is_active
-
         if data.password is not None:
             user.password_hash = hash_password(data.password)
+
+        if isinstance(data, UserAdminUpdate):
+            if data.role is not None:
+                user.role = data.role
+
+            if data.is_active is not None:
+                user.is_active = data.is_active
 
         await self.repository.session.flush()
         await self.repository.session.refresh(user)
 
         return user
+
 
     async def deactivate(self, user: User) -> None:
         await self.repository.deactivate(user)
