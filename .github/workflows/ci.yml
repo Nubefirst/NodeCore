@@ -26,4 +26,7 @@ jobs:
         run: uv sync --locked
 
       - name: Run tests
+        env:
+          JWT_SECRET_KEY: ${{ secrets.NODECORE_CI_JWT_SECRET }}
+          DATABASE_URL: postgresql+psycopg://nodecore:nodecore_password@localhost:5432/nodecore
         run: uv run pytest
