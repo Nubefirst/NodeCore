@@ -3,6 +3,9 @@ from backend.app.repositories.user import UserRepository
 from backend.app.schemas.user import UserCreate, UserMeUpdate, UserAdminUpdate
 from backend.app.security.password import hash_password
 from backend.app.core.enums import UserRole
+from backend.app.core.exceptions import ConflictError
+
+from sqlalchemy.exc import IntegrityError
 
 
 class UserService:
@@ -23,8 +26,9 @@ class UserService:
 
     async def create(self, data: UserCreate) -> User:
         existing_user = await self.repository.get_by_username(data.username)
+
         if existing_user:
-            raise ValueError("Username already exists")
+            raise ConflictError("Username already exists")
 
         user = User(
             username=data.username,
@@ -33,7 +37,21 @@ class UserService:
             is_active=True,
         )
 
-        return await self.repository.create(user)
+        try:
+            return await self.repository.create(user)
+        except IntegrityError as exc:
+            await self.repository.session.rollback()
+
+            constraint_name = getattr(
+                getattr(exc.orig, "diag", None),
+                "constraint_name",
+                None,
+            )
+
+            if constraint_name == "users_username_key":
+                raise ConflictError("Username already exists") from exc
+
+            raise
 
 
     async def update(
