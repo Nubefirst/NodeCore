@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from backend.app.api.v1.auth import router as auth_router
 from backend.app.api.v1.health import router as health_router
 from backend.app.api.v1.users import router as users_router
 from backend.app.core.config import settings
-
+from backend.app.core.exceptions import AppError
 
 openapi_tags = [
     {
@@ -41,6 +42,37 @@ NodeCore API — backend для управления Linux-серверами.
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+@app.exception_handler(AppError)
+async def app_error_handler(
+    request: Request,
+    exc: AppError,
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+            }
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def internal_error_handler(
+    request: Request,
+    exc: Exception,
+):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "internal_error",
+                "message": "Internal server error",
+            }
+        },
+    )
 
 app.include_router(
     users_router,
