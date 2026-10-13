@@ -1,11 +1,28 @@
 import asyncio
 import selectors
+import os
+import getpass
 
 from backend.app.db.session import async_session_factory
 from backend.app.repositories.user import UserRepository
 from backend.app.models.user import User
 from backend.app.core.enums import UserRole
 from backend.app.security.password import hash_password
+
+def get_admin_password() -> str:
+    password = os.getenv("NODECORE_ADMIN_PASSWORD")
+
+    if password == "":
+        raise ValueError("NODECORE_ADMIN_PASSWORD is set but empty")
+
+    if password is None:
+        password = getpass.getpass("Enter admin password: ")
+
+
+    if not password.strip():
+        raise ValueError("Password cannot be empty or whitespace")
+
+    return password
 
 
 async def main():
@@ -18,7 +35,7 @@ async def main():
             print("Admin already exists")
             return
 
-        password = "12345678"
+        password = get_admin_password()
         user = User(
             username="admin",
             password_hash=hash_password(password),
