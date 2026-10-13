@@ -1,23 +1,28 @@
 # NodeCore — настройка проекта для разработчика
 
-Этот файл описывает, как быстро подготовить проект к локальной разработке на macOS, Linux или Windows.
+Этот файл описывает запуск NodeCore на macOS, Linux или Windows. Основной сценарий запускает backend и PostgreSQL в Docker; локальный запуск backend через `uv` описан отдельно ниже.
 
 ## Требования
 
-Перед началом убедитесь, что у вас установлены:
+Для основного сценария понадобятся:
 
-- Python 3.12+
-- uv
 - Docker и Docker Compose
 - Git
 
-Проверить установку можно так:
+Для локальной разработки backend дополнительно установите Python 3.12+ и `uv`.
+
+Проверить установки можно так:
+
+```bash
+docker --version
+docker compose version
+```
+
+Для локальной разработки:
 
 ```bash
 python --version
 uv --version
-docker --version
-docker compose version
 ```
 
 ## 1. Клонируйте проект
@@ -27,37 +32,9 @@ git clone <repo-url>
 cd NodeCore
 ```
 
-## 2. Установите зависимости через uv
+Далее все команды запускайте из корня проекта — там находятся `Dockerfile`, `compose.yaml` и `.env`.
 
-В корне проекта выполните:
-
-```bash
-uv sync
-```
-
-После этого будет создано виртуальное окружение `.venv` и установятся зависимости из `pyproject.toml`.
-
-### Активация виртуального окружения
-
-#### macOS / Linux
-
-```bash
-source .venv/bin/activate
-```
-
-#### Windows PowerShell
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-#### Windows CMD
-
-```cmd
-.venv\Scripts\activate.bat
-```
-
-## 3. Настройте переменные окружения
+## 2. Настройте переменные окружения
 
 Скопируйте пример файла окружения:
 
@@ -65,92 +42,110 @@ source .venv/bin/activate
 cp .env.example .env
 ```
 
-Если вы на Windows PowerShell, используйте:
+В Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Проверьте содержимое `.env`:
+Сгенерируйте уникальный секрет:
 
 ```bash
-cat .env
+docker run --rm python:3.13-slim python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Обычно там должно быть что-то вроде:
+Замените `REPLACE_WITH_GENERATED_VALUE` в `.env` результатом команды. Не используйте один и тот же секрет в разных окружениях и не добавляйте `.env` в Git.
 
-```env
-APP_NAME=NodeCore
-APP_VERSION=0.1.0
-DEBUG=true
+Замените пароль PostgreSQL `change_me` на свой и укажите его в `POSTGRES_PASSWORD`. В `DATABASE_URL` должны совпадать имя базы данных, пользователь и пароль.
 
-POSTGRES_DB=nodecore
-POSTGRES_USER=nodecore
-POSTGRES_PASSWORD=change_me
-POSTGRES_PORT=5432
+Compose загружает параметры из корневого `.env`. Для backend-контейнера Compose задаёт адрес базы с хостом `postgres` — именем сервиса PostgreSQL внутри Compose-сети. Для описанного ниже локального запуска backend используйте `localhost` в `DATABASE_URL`.
 
-DATABASE_URL=postgresql+psycopg://nodecore:nodecore_password@localhost:5432/nodecore
-```
+## 3. Запустите проект в Docker
 
-> Для локального запуска можно оставить значения по умолчанию, но лучше заменить пароль на свой.
+Текущий Compose-файл запускает backend и PostgreSQL; frontend из папки `frontend/` в Compose пока не настроен и автоматически не запускается.
 
-## 4. Поднимите PostgreSQL через Docker
+Соберите image `nodecore-backend:latest` и запустите backend вместе с PostgreSQL:
 
 ```bash
-docker compose up -d postgres
+docker compose up --build -d
 ```
 
-Проверить статус контейнера:
+Compose дождётся готовности PostgreSQL, применит миграции и запустит backend. Проверить состояние сервисов:
 
 ```bash
 docker compose ps
 ```
 
-## 5. Примените миграции базы данных
+Посмотреть логи backend:
 
 ```bash
-uv run alembic upgrade head
+docker compose logs -f backend
 ```
 
-## 6. Запустите backend
-
-```bash
-uv run uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-После этого приложение будет доступно по адресам:
+Приложение будет доступно по адресам:
 
 - API: http://localhost:8000
 - Swagger: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
-## Полезные команды
-
-### Запуск приложения
+Остановить контейнеры, сохранив данные PostgreSQL:
 
 ```bash
-uv run uvicorn backend.app.main:app --reload
+docker compose down
 ```
 
-### Создание миграции
+## Локальная разработка backend (необязательно)
+
+В этом режиме PostgreSQL работает в Docker, а backend запускается локально с автоматической перезагрузкой.
+
+Установите зависимости из корня проекта:
+
+```bash
+uv sync
+```
+
+Убедитесь, что `DATABASE_URL` в `.env` использует `localhost` и те же имя базы, пользователя и пароль, что заданы переменными `POSTGRES_DB`, `POSTGRES_USER` и `POSTGRES_PASSWORD`.
+
+Запустите PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
+Примените миграции и запустите backend:
+
+```bash
+uv run alembic upgrade head
+uv run uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## Полезные команды
+
+### Пересобрать и запустить приложение в Docker
+
+```bash
+docker compose up --build -d
+```
+
+### Создать миграцию (локально)
 
 ```bash
 uv run alembic revision --autogenerate -m "your migration name"
 ```
 
-### Применение миграций
+### Применить миграции (локально)
 
 ```bash
 uv run alembic upgrade head
 ```
 
-### Откат миграции
+### Откатить миграцию (локально)
 
 ```bash
 uv run alembic downgrade -1
 ```
 
-### Проверка настроек приложения
+### Проверить настройки приложения (локально)
 
 ```bash
 uv run python -c "from backend.app.core.config import settings; print(settings.app_name, settings.database_url)"
@@ -174,10 +169,11 @@ NodeCore/
 ├── migrations/
 ├── frontend/
 ├── docs/
+├── Dockerfile
+├── compose.yaml
 ├── .env.example
 ├── .env
 ├── alembic.ini
-├── compose.yaml
 ├── pyproject.toml
 ├── README.md
 ├── ROADMAP.md
@@ -188,34 +184,37 @@ NodeCore/
 
 ## Частые проблемы и решения
 
+### Docker Compose не находит `.env`
+
+Убедитесь, что команда запущена из корня проекта и файл `.env` создан из `.env.example`.
+
 ### PostgreSQL не запускается
 
-Проверьте, что Docker запущен, и что порт в `.env` не занят:
+Проверьте, что Docker запущен, и что порт из `POSTGRES_PORT` не занят:
 
 ```bash
+docker compose ps
 docker ps
 ```
 
-### Ошибки импорта или модуль не найден
+### Ошибки подключения к базе данных
 
-Убедитесь, что вы запускаете команды из корня проекта:
+При запуске всего приложения в Docker backend должен подключаться к хосту `postgres`; Compose настраивает это автоматически. При локальном запуске backend адрес должен быть `localhost`. В обоих случаях проверьте соответствие `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` и `DATABASE_URL`.
 
-```bash
-pwd
-ls
-```
+### Ошибки импорта или модуль не найден при локальном запуске
 
-И что зависимости установлены через `uv sync`.
-
-### Проблемы с Alembic
-
-Проверьте, что `DATABASE_URL` в `.env` совпадает с настройками PostgreSQL:
-
-```bash
-cat .env
-```
+Убедитесь, что вы запускаете команды из корня проекта и выполнили `uv sync`.
 
 ## Рекомендуемый ежедневный цикл разработки
+
+Полностью в Docker:
+
+```bash
+docker compose up --build -d
+docker compose logs -f backend
+```
+
+Локальный backend с PostgreSQL в Docker:
 
 ```bash
 uv sync

@@ -1,7 +1,11 @@
+name: nodecore
+
 services:
   backend:
-    build: .
-    container_name: nodecore-backend
+    image: nodecore-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
 
     ports:
@@ -21,10 +25,9 @@ services:
     command: >
       sh -c "alembic upgrade head &&
             uvicorn backend.app.main:app --host 0.0.0.0 --port 8000"
-            
+
   postgres:
     image: postgres:17
-    container_name: nodecore-postgres
     restart: unless-stopped
 
     environment:
