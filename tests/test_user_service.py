@@ -10,6 +10,8 @@ from backend.app.main import internal_error_handler
 from backend.app.schemas.user import UserCreate
 from backend.app.services.user import UserService
 
+from loguru import logger
+
 
 @pytest.mark.asyncio
 async def test_create_user_handles_username_integrity_error():
@@ -80,7 +82,17 @@ def test_unexpected_error_returns_500():
         raise_server_exceptions=False,
     )
 
-    response = client.get("/test-internal-error")
+    log_messages = []
+    handler_id = logger.add(
+        lambda message: log_messages.append(str(message)),
+        level="ERROR",
+        format="{level} | {message}",
+    )
+
+    try:
+        response = client.get("/test-internal-error")
+    finally:
+        logger.remove(handler_id)
 
     assert response.status_code == 500
     assert response.json() == {
@@ -89,6 +101,15 @@ def test_unexpected_error_returns_500():
             "message": "Internal server error",
         }
     }
+
+    assert any(
+        "Unhandled exception: GET /test-internal-error" in message
+        for message in log_messages
+    )
+    assert any(
+        "ValueError: Secret internal error" in message
+        for message in log_messages
+    )
 
 
 @pytest.mark.asyncio

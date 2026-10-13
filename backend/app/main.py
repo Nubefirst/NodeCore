@@ -6,6 +6,9 @@ from backend.app.api.v1.health import router as health_router
 from backend.app.api.v1.users import router as users_router
 from backend.app.core.config import settings
 from backend.app.core.exceptions import AppError
+from backend.app.core.logger import logger
+from backend.app.middlewares.request_logging import RequestLoggingMiddleware
+
 
 openapi_tags = [
     {
@@ -43,11 +46,23 @@ NodeCore API — backend для управления Linux-серверами.
     openapi_url="/openapi.json",
 )
 
+
+app.add_middleware(RequestLoggingMiddleware)
+
+
 @app.exception_handler(AppError)
 async def app_error_handler(
     request: Request,
     exc: AppError,
 ):
+    logger.warning(
+        "Application error: {} {} | {} | {}",
+        request.method,
+        request.url.path,
+        exc.code,
+        exc.message,
+    )
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -64,6 +79,12 @@ async def internal_error_handler(
     request: Request,
     exc: Exception,
 ):
+    logger.opt(exception=exc).error(
+        "Unhandled exception: {} {}",
+        request.method,
+        request.url.path,
+    )
+
     return JSONResponse(
         status_code=500,
         content={
