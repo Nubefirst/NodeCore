@@ -1,13 +1,15 @@
 from backend.app.repositories.user import UserRepository
+from backend.app.security.jwt import (
+    create_access_token,
+    create_refresh_token,
+    decode_refresh_token,
+)
 from backend.app.security.password import verify_password
-from backend.app.security.jwt import create_access_token, create_refresh_token, decode_refresh_token
 
 
 class AuthService:
-
     def __init__(self, repository: UserRepository):
         self.repository = repository
-
 
     async def login(self, username, password):
         user = await self.repository.get_by_username(username)
@@ -23,11 +25,7 @@ class AuthService:
 
         access_token = create_access_token({"sub": str(user.id)})
         refresh_token = create_refresh_token({"sub": str(user.id)})
-        return {
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        }
-
+        return {"access_token": access_token, "refresh_token": refresh_token}
 
     async def refresh(self, refresh_token):
         payload = decode_refresh_token(refresh_token)
@@ -53,7 +51,3 @@ class AuthService:
         return {
             "access_token": access_token,
         }
-
-
-
-

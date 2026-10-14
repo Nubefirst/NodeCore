@@ -3,14 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from loguru import logger
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.core.exceptions import ConflictError
 from backend.app.main import internal_error_handler
 from backend.app.schemas.user import UserCreate
 from backend.app.services.user import UserService
-
-from loguru import logger
 
 
 @pytest.mark.asyncio
@@ -107,8 +106,7 @@ def test_unexpected_error_returns_500():
         for message in log_messages
     )
     assert any(
-        "ValueError: Secret internal error" in message
-        for message in log_messages
+        "ValueError: Secret internal error" in message for message in log_messages
     )
 
 
@@ -137,4 +135,3 @@ async def test_create_user_reraises_integrity_error_without_constraint_name():
         await service.create(user_data)
 
     repository.session.rollback.assert_awaited_once()
-    

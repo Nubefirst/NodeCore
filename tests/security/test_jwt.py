@@ -1,16 +1,21 @@
-import pytest
-import jwt
-import json
 import base64
-from fastapi.testclient import TestClient
-from backend.app.security.jwt import create_refresh_token,decode_refresh_token,create_access_token, decode_access_token
-from datetime import datetime, timezone
+import json
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
-from backend.app.main import app
-from backend.app.dependencies.database import get_db
-from backend.app.repositories.user import UserRepository
-from backend.app.security.password import hash_password
+
+import jwt
+import pytest
+from fastapi.testclient import TestClient
+
 from backend.app.core.config import settings
+from backend.app.dependencies.database import get_db
+from backend.app.main import app
+from backend.app.security.jwt import (
+    create_access_token,
+    create_refresh_token,
+    decode_access_token,
+    decode_refresh_token,
+)
 
 
 def test_create_access_token_returns_string():
@@ -81,9 +86,9 @@ def test_decode_tampered_token_raises_error():
     payload_dict = json.loads(payload_decoded)
     payload_dict["sub"] = "999"
 
-    new_payload = base64.urlsafe_b64encode(
-        json.dumps(payload_dict).encode()
-    ).decode().rstrip("=")
+    new_payload = (
+        base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+    )
 
     tampered_token = f"{header}.{new_payload}.{signature}"
 
@@ -141,14 +146,10 @@ def test_refresh_token_has_7_days_expiration():
     payload = jwt.decode(token, options={"verify_signature": False})
 
     exp = payload["exp"]
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
     expected = now + (7 * 24 * 60 * 60)
 
-
     assert abs(exp - expected) < 60
-
-
-
 
 
 @pytest.fixture
@@ -198,7 +199,6 @@ def test_refresh_valid_token(client):
         app.dependency_overrides.clear()
 
 
-
 def test_refresh_with_access_token(client):
     """2. Access token вместо refresh → 401."""
     access_token = create_access_token({"sub": "123"})
@@ -221,9 +221,9 @@ def test_refresh_with_access_token(client):
         app.dependency_overrides.clear()
 
 
-
 def test_refresh_with_invalid_token(client):
     """3. Полностью невалидный токен → 401."""
+
     async def override_get_db():
         return MagicMock()
 
@@ -240,7 +240,6 @@ def test_refresh_with_invalid_token(client):
 
     finally:
         app.dependency_overrides.clear()
-
 
 
 def test_refresh_with_expired_token(client):
@@ -267,7 +266,6 @@ def test_refresh_with_expired_token(client):
 
     finally:
         app.dependency_overrides.clear()
-
 
 
 def test_refresh_with_nonexistent_user(client):
@@ -307,14 +305,12 @@ def test_refresh_with_inactive_user(client):
     """6. Refresh неактивного пользователя → 401."""
     refresh_token = create_refresh_token({"sub": "123"})
 
-
     fake_user = MagicMock()
     fake_user.id = 123
     fake_user.is_active = False
 
     mock_repository = MagicMock()
     mock_repository.get_by_id = AsyncMock(return_value=fake_user)
-
 
     async def override_get_db():
         return MagicMock()

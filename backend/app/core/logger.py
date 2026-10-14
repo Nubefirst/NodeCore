@@ -3,7 +3,6 @@ from pathlib import Path
 
 from loguru import logger
 
-
 logger.remove()
 
 Path("logs").mkdir(parents=True, exist_ok=True)

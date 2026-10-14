@@ -1,10 +1,10 @@
-import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, MagicMock
 
-from backend.app.main import app
+import pytest
+from fastapi.testclient import TestClient
+
 from backend.app.dependencies.database import get_db
-from backend.app.repositories.user import UserRepository
+from backend.app.main import app
 from backend.app.security.password import hash_password
 
 
@@ -12,7 +12,6 @@ from backend.app.security.password import hash_password
 def client():
     """Фикстура для создания тестового клиента."""
     return TestClient(app)
-
 
 
 def test_login_success(client):
@@ -57,7 +56,6 @@ def test_login_success(client):
 
     finally:
         app.dependency_overrides.clear()
-
 
 
 def test_login_wrong_password(client):

@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
+      - name: Run lint
+        run: uv run ruff check .
+
+      - name: Check format
+        run: uv run ruff format --check .
+
       - name: Run tests
         env:
           JWT_SECRET_KEY: ${{ secrets.NODECORE_CI_JWT_SECRET }}

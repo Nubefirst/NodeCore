@@ -1,13 +1,14 @@
 import asyncio
-import selectors
-import os
 import getpass
+import os
+import selectors
 
-from backend.app.db.session import async_session_factory
-from backend.app.repositories.user import UserRepository
-from backend.app.models.user import User
 from backend.app.core.enums import UserRole
+from backend.app.db.session import async_session_factory
+from backend.app.models.user import User
+from backend.app.repositories.user import UserRepository
 from backend.app.security.password import hash_password
+
 
 def get_admin_password() -> str:
     password = os.getenv("NODECORE_ADMIN_PASSWORD")
@@ -18,7 +19,6 @@ def get_admin_password() -> str:
     if password is None:
         password = getpass.getpass("Enter admin password: ")
 
-
     if not password.strip():
         raise ValueError("Password cannot be empty or whitespace")
 
@@ -27,7 +27,6 @@ def get_admin_password() -> str:
 
 async def main():
     async with async_session_factory() as session:
-
         repository = UserRepository(session)
 
         existing = await repository.get_by_username("admin")
@@ -52,7 +51,5 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(
         main(),
-        loop_factory=lambda: asyncio.SelectorEventLoop(
-            selectors.SelectSelector()
-        ),
+        loop_factory=lambda: asyncio.SelectorEventLoop(selectors.SelectSelector()),
     )

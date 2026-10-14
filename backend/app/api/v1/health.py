@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.dependencies.database import get_db
 
-
 router = APIRouter()
 
 
