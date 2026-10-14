@@ -9,7 +9,6 @@ from backend.app.core.exceptions import AppError
 from backend.app.core.logger import logger
 from backend.app.middlewares.request_logging import RequestLoggingMiddleware
 
-
 openapi_tags = [
     {
         "name": "Authentication",
@@ -94,6 +93,7 @@ async def internal_error_handler(
             }
         },
     )
+
 
 app.include_router(
     users_router,

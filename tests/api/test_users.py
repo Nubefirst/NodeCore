@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -29,8 +29,8 @@ def create_fake_user(
         password_hash=hash_password(password),
         role=role,
         is_active=is_active,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -75,8 +75,8 @@ def test_get_current_user():
         password_hash="secret_hash",
         is_active=True,
         role="user",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     async def override_get_current_user():
@@ -141,7 +141,9 @@ def test_create_user_password_hashed():
             call_args = mock_repository.create.call_args[0][0]
             assert call_args.username == user_data["username"]
             assert call_args.password_hash != user_data["password"]
-            assert verify_password(user_data["password"], call_args.password_hash) is True
+            assert (
+                verify_password(user_data["password"], call_args.password_hash) is True
+            )
             assert call_args.role == UserRole.USER
             assert call_args.is_active is True
     finally:
@@ -585,7 +587,9 @@ def test_deactivated_user_cannot_access_me():
     async def override_get_current_user():
         return fake_user
 
-    from backend.app.security.dependencies import get_current_active_user, get_current_user
+    from backend.app.security.dependencies import (
+        get_current_user,
+    )
 
     app.dependency_overrides[get_current_user] = override_get_current_user
     setup_mock_db()

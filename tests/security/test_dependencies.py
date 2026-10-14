@@ -1,10 +1,12 @@
-import pytest
-import jwt
 from unittest.mock import AsyncMock, MagicMock
+
+import jwt
+import pytest
 from fastapi import HTTPException
-from backend.app.security.dependencies import get_current_user
-from backend.app.security.jwt import create_access_token, decode_access_token
+
 from backend.app.core.config import settings
+from backend.app.security.dependencies import get_current_user
+from backend.app.security.jwt import create_access_token
 
 
 @pytest.mark.asyncio
