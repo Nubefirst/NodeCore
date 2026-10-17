@@ -75,7 +75,7 @@ NodeCore/
 - [ROADMAP.md](ROADMAP.md) — план развития.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — архитектурные решения.
 - [DEVELOPER_SETUP.md](DEVELOPER_SETUP.md) — настройка окружения разработчика.
-- `CONTRIBUTING.md` *(будет добавлен позже)*.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — правила работы с Git, Pull Request и Code Review.
 
 ---
 
