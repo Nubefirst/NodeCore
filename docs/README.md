@@ -45,7 +45,7 @@ Version 0.1 — Foundation
 - Notifications
 - Infrastructure Management
 
-Полный список доступен в `ROADMAP.md`.
+Полный список доступен в [ROADMAP.md](ROADMAP.md).
 
 ---
 
@@ -53,26 +53,29 @@ Version 0.1 — Foundation
 
 ```
 NodeCore/
-
 ├── backend/
-├── frontend/
-├── infrastructure/
 ├── docs/
-
-├── README.md
-├── VISION.md
-├── ROADMAP.md
-└── ARCHITECTURE.md
+│   ├── ARCHITECTURE.md
+│   ├── DEVELOPER_SETUP.md
+│   ├── README.md
+│   ├── ROADMAP.md
+│   └── VISION.md
+├── migrations/
+├── scripts/
+├── tests/
+├── pyproject.toml
+└── uv.lock
 ```
 
 ---
 
 ## Documentation
 
-- `VISION.md` — долгосрочное видение проекта.
-- `ROADMAP.md` — план развития.
-- `ARCHITECTURE.md` — архитектурные решения.
-- `CONTRIBUTING.md` *(будет добавлен позже)*.
+- [VISION.md](VISION.md) — долгосрочное видение проекта.
+- [ROADMAP.md](ROADMAP.md) — план развития.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — архитектурные решения.
+- [DEVELOPER_SETUP.md](DEVELOPER_SETUP.md) — настройка окружения разработчика.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — правила работы с Git, Pull Request и Code Review.
 
 ---
 
