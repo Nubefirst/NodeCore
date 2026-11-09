@@ -15,7 +15,7 @@ from backend.app.schemas.system import (
 class SystemService:
     @staticmethod
     def get_system_info() -> SystemInfoResponse:
-        cpu = CPUInfo(usage_percent=psutil.cpu_percent(interval=1))
+        cpu = CPUInfo(usage_percent=psutil.cpu_percent(interval=None))
 
         memory = psutil.virtual_memory()
 
