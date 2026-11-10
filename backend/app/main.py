@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from backend.app.api.v1.auth import router as auth_router
 from backend.app.api.v1.health import router as health_router
+from backend.app.api.v1.system import router as system_router
 from backend.app.api.v1.users import router as users_router
 from backend.app.core.config import settings
 from backend.app.core.exceptions import AppError
@@ -22,6 +23,10 @@ openapi_tags = [
         "name": "Health",
         "description": "Application and database health checks.",
     },
+    {
+        "name": "System",
+        "description": "System monitoring and resource usage information.",
+    },
 ]
 
 
@@ -35,7 +40,8 @@ NodeCore API — backend для управления Linux-серверами.
 
 - аутентификацию пользователей;
 - управление пользователями;
-- проверку состояния приложения и базы данных.
+- проверку состояния приложения и базы данных;
+- мониторинг системных ресурсов.
 """,
     contact={"name": "NodeCore Team"},
     license_info={"name": "MIT"},
@@ -111,4 +117,10 @@ app.include_router(
     health_router,
     prefix="/api/v1/health",
     tags=["Health"],
+)
+
+app.include_router(
+    system_router,
+    prefix="/api/v1/system",
+    tags=["System"],
 )
