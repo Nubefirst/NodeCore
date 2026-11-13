@@ -8,3 +8,7 @@ __pycache__/
 .vscode/
 .idea/
 logs/
+
+# Node.js
+node_modules/
+dist/
