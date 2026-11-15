@@ -9,34 +9,47 @@ function Dashboard() {
     const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+
     useEffect(() => {
+        let isActive = true
+        let timeoutId: ReturnType<typeof setTimeout>
+
         async function fetchSystemInfo() {
             try {
                 const data = await getSystemInfo()
+
+                if (!isActive) return
+
                 setSystemInfo(data)
                 setError(null)
+                setLastUpdated(new Date())
             } catch {
+                if (!isActive) return
+
                 setError('Failed to load system information')
             } finally {
-                setLoading(false)
+                if (isActive) {
+                    setLoading(false)
+                    timeoutId = setTimeout(fetchSystemInfo, 5000)
+                }
             }
         }
 
         fetchSystemInfo()
 
-        const intervalId = setInterval(fetchSystemInfo, 5000)
-
         return () => {
-            clearInterval(intervalId)
+            isActive = false
+            clearTimeout(timeoutId)
         }
     }, [])
-    if (loading) {
-        return <p>Loading system information...</p>
-    }
 
-    if (error || !systemInfo) {
-        return <p>{error ?? 'No system information available'}</p>
-    }
+    const connectionStatus = error
+        ? 'Offline'
+        : loading
+            ? 'Connecting...'
+            : 'Online'
+
     return (
         <div className="dashboard">
             <div className="dashboard-heading">
@@ -45,42 +58,75 @@ function Dashboard() {
             </div>
 
             <div className="server-status">
-                <span className={`status-dot ${error ? 'offline' : 'online'}`} />
-                <span>{error ? 'Offline' : 'Online'}</span>
+                <span
+                    className={`status-dot ${error ? 'offline' : 'online'
+                        }`}
+                />
+                <span>{connectionStatus}</span>
             </div>
 
+            {error && (
+                <div className="dashboard-error">
+                    {error}. Retrying automatically...
+                </div>
+            )}
+
             <div className="server-info">
-                <span>{systemInfo.hostname}</span>
+                <span>{systemInfo?.hostname ?? 'Unknown server'}</span>
                 <span>
-                    {systemInfo.os.system} {systemInfo.os.release}
+                    {systemInfo
+                        ? `${systemInfo.os.system} ${systemInfo.os.release}`
+                        : 'OS information unavailable'}
                 </span>
             </div>
+
+            {lastUpdated && (
+                <p className="last-updated">
+                    Last updated: {lastUpdated.toLocaleTimeString()}
+                </p>
+            )}
 
             <div className="metrics-grid">
                 <MetricCard
                     title="CPU Usage"
-                    value={`${systemInfo.cpu.usage_percent}%`}
+                    value={
+                        systemInfo
+                            ? `${systemInfo.cpu.usage_percent}%`
+                            : '—'
+                    }
                     description="Processor utilization"
-                    percentage={systemInfo.cpu.usage_percent}
+                    percentage={systemInfo?.cpu.usage_percent}
                 />
 
                 <MetricCard
                     title="Memory"
-                    value={`${formatBytes(systemInfo.memory.used)} / ${formatBytes(systemInfo.memory.total)}`}
+                    value={
+                        systemInfo
+                            ? `${formatBytes(systemInfo.memory.used)} / ${formatBytes(systemInfo.memory.total)}`
+                            : '—'
+                    }
                     description="RAM utilization"
-                    percentage={systemInfo.memory.usage_percent}
+                    percentage={systemInfo?.memory.usage_percent}
                 />
 
                 <MetricCard
                     title="Disk Usage"
-                    value={`${formatBytes(systemInfo.disk.used)} / ${formatBytes(systemInfo.disk.total)}`}
+                    value={
+                        systemInfo
+                            ? `${formatBytes(systemInfo.disk.used)} / ${formatBytes(systemInfo.disk.total)}`
+                            : '—'
+                    }
                     description="Storage utilization"
-                    percentage={systemInfo.disk.usage_percent}
+                    percentage={systemInfo?.disk.usage_percent}
                 />
 
                 <MetricCard
                     title="Uptime"
-                    value={formatUptime(systemInfo.uptime)}
+                    value={
+                        systemInfo
+                            ? formatUptime(systemInfo.uptime)
+                            : '—'
+                    }
                     description="System uptime"
                 />
             </div>
